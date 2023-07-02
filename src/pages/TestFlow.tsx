@@ -1,19 +1,31 @@
 import React from "react";
 import styled from "styled-components";
+import { CenteredFlexBox } from "../constants";
+import { ExampleEdges, ExampleNodes, HierarchicalEdges, HierarchicalNodes } from "../test-data";
+import { FlowProvider } from "../components";
 
 const TestFlowWrapper = styled.div<any>`
-  
+  width: 100%;
+  height: 100%;
 `;
 
 interface TestFlowProps {
+  nodesForFlow?: any[];
+  edgesForFlow?: any[];
 };
 
 const TestFlow = (props: TestFlowProps) => {
-  const {} = props;
+  const {
+    nodesForFlow = HierarchicalNodes,
+    edgesForFlow = HierarchicalEdges,
+  } = props;
 
   return (
-    <>test-flow
-    </>
+    <CenteredFlexBox>
+      <TestFlowWrapper>
+        <FlowProvider nodes={nodesForFlow} edges={edgesForFlow} />
+      </TestFlowWrapper>
+    </CenteredFlexBox>
   )
 };
 

@@ -41,7 +41,10 @@
 }
 
 html {
+  font-family: 'Berkeley Mono', 'Roboto', sans-serif;
   font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   @media (max-width: 768px) {
     font-size: 12px;
   }
@@ -50,9 +53,33 @@ html {
 body {
   font-family: 'Berkeley Mono', 'Roboto', sans-serif;
   background-color: #18191A;
-  /* background-color: #f3f7f9; */
   color: #fff;
   margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font-family: 'Berkeley Mono', 'Roboto', sans-serif;
+  background-color: #18191A;
+  color: #fff;
+  border: 1px solid #fff;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+select {
+  background-color: #18191A;
+  color: #fff;
+  border: 1px solid #fff;
+}
+
+span, div {
+  margin: 0;
+  padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -85,10 +112,14 @@ a:hover {
   height: .5rem;
 }
 
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(217,217,227,.3); /* Notice the color change here */
-  border-color: rgb(255,255,255);
-  border-radius: 9999px;
+  background-color: rgba(217,217,227,.3);
+  border-color: rgba(217,217,227,.3);
+  border-radius: 10px;
   border-width: 1px;
 }
 
@@ -98,5 +129,5 @@ a:hover {
 
 ::-webkit-scrollbar-track {
   background-color: transparent;
-  border-radius: 9999px;
+  border-radius: 10px;
 }

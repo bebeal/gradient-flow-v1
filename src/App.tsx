@@ -7,6 +7,22 @@ import { generatePageName, renderRoutes } from './utils';
 
 import './App.css';
 import { Dark } from './themes';
+import TestGrid from './pages/TestGrid';
+import { Attribute, Label, LabeledArea } from './constants';
+import TestDraw from './pages/TestDraw';
+import TestAccordion from './pages/TestAccordion';
+import TestTerminal from './pages/TestTerminal';
+import TestCodeHighlight from './pages/TestCodeHighlight';
+import TestMultiTerminal from './pages/TestMultiTerminal';
+import TestTabs from './pages/TestTabs';
+import TestControlPanel from './pages/TestControlPanel';
+
+export const IntanceLabeledAttribute = (
+  <LabeledArea theme={Dark}>
+  <Label theme={Dark}>Label</Label>
+  <Attribute theme={Dark}>Value</Attribute>
+</LabeledArea>
+);
 
 export interface Page {
   path: string;
@@ -15,7 +31,16 @@ export interface Page {
 };
 
 export const Pages: Page[] = [
-  { path: "test-flow", component: <TestFlow />, name: generatePageName('/'),  },
+  { path: "test-flow", component: <TestFlow />, name: generatePageName('/test-flow'),  },
+  { path: "test-grid", component: <TestGrid />, name: generatePageName('/test-grid'),  },
+  { path: "test-label", component: IntanceLabeledAttribute, name: generatePageName('/test-label'),  },
+  { path: "test-draw", component: <TestDraw />, name: generatePageName('/test-draw'), },
+  { path: "test-accordion", component: <TestAccordion />, name: generatePageName('/test-accordion'),},
+  { path: "test-terminal", component: <TestTerminal />, name: generatePageName('/test-terminal'),},
+  { path: "test-multiterminal", component: <TestMultiTerminal />, name: generatePageName('/test-multiterminal'),},
+  { path: "test-codehighlight", component: <TestCodeHighlight />, name: generatePageName('/test-codehighlight'),},
+  { path: "test-tabs", component: <TestTabs />, name: generatePageName('/test-tabs'),},
+  { path: "test-controlpanel", component: <TestControlPanel />, name: generatePageName('/test-controlpanel'),},
   { path: "*", component: <div>404</div>, name: generatePageName('/'), },
 
 
@@ -41,7 +66,7 @@ const App = () => {
       <AppWrapper>
         <Router>
           <Routes>
-              {renderRoutes(Pages)}
+            {renderRoutes(Pages)}
           </Routes>
         </Router>
       </AppWrapper>

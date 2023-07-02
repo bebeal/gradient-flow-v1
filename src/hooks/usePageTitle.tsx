@@ -9,7 +9,9 @@ const usePageTitle = () => {
     document.title = pageTitle;
   }, [pageTitle]);
 
-  return pageTitle;
+  return {
+    pageTitle,
+  };
 };
 
 export default usePageTitle;

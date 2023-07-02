@@ -1,4 +1,3 @@
-export { default as Copy } from './Copy';
-export { default as CopySuccess } from './CopySuccess';
+export * from "./icons";
 export { default as SVG } from './SVG';
 

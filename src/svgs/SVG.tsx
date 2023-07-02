@@ -37,11 +37,11 @@ export interface StaticSVGProps {
 
 export const getAttributes = (width?: string, height?: string, fill?: string, stroke?: string, viewBox?: string) => {
   const attributes: StaticSVGProps = {};
-  if (width) { attributes.width = width; }
-  if (height) { attributes.height = height; }
-  if (fill) { attributes.fill = fill; }
-  if (stroke) { attributes.stroke = stroke; }
-  if (viewBox) { attributes.viewBox = viewBox; }
+  if (width && width.length > 0) { attributes.width = width; }
+  if (height && height.length > 0) { attributes.height = height; }
+  if (fill && fill.length > 0) { attributes.fill = fill; }
+  if (stroke && stroke.length > 0) { attributes.stroke = stroke; }
+  if (viewBox && viewBox.length > 0) { attributes.viewBox = viewBox; }
   return attributes;
 };
 
@@ -68,3 +68,32 @@ const SVG = (props: SVGProps) => {
 };
 
 export default SVG;
+
+// ------------------------------------------------------------------------
+
+// parameterized solution from https://stackoverflow.com/a/53681663
+export const fourCornerGradientBackground = (topLeft: string = "#38C9EA", topRight: any = "#db258f", bottomRight: string = "#FFA93A", bottomLeft: any = "#6D3DFC"): any => {
+  return (
+      <svg preserveAspectRatio="none" viewBox="0 0 1 1" version="1.1" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+          <linearGradient id="g">
+              <stop offset="0" stopColor="#fff" stopOpacity="0"></stop>
+              <stop offset="1" stopColor="#fff" stopOpacity="1"></stop>
+          </linearGradient>
+          <mask id="m">
+              <rect x="0" y="0" width="1" height="1" fill="url(#g)"></rect>
+          </mask>
+          <linearGradient id="a" gradientTransform="rotate(90)">
+              <stop offset="0" stopColor={topRight}></stop>
+              <stop offset="1" stopColor={bottomRight}></stop>
+          </linearGradient>
+          <linearGradient id="b" gradientTransform="rotate(90)">
+              <stop offset="0" stopColor={bottomLeft}></stop>
+              <stop offset="1" stopColor={topLeft}></stop>
+          </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="1" height="1" fill="url(#a)" mask="url(#m)"></rect>
+          <rect x="0" y="0" width="1" height="1" fill="url(#b)" mask="url(#m)" transform="translate(1,1) rotate(180)"></rect>
+      </svg>
+  );
+};
