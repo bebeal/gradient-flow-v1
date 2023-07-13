@@ -1,77 +1,77 @@
 import { useState } from "react";
 import FlowControlPanel from "../components/Flow/FlowControls/FlowControlPanel";
-import { Home } from "../svgs";
-import { Button } from "../components/Flow/FlowControls/FlowControls";
-import { Label, LabeledArea } from "../constants";
-import { useTheme } from "styled-components";
-import Select from "../components/Select/Select";
+import { ClickableButton, LabeledInput, LabeledSelector, ToggleButton } from "../components/Flow/FlowControls/FlowButtons";
+import { Home, Pencil } from "../svgs";
 
-const SimpleButton = () => {
-  const [active, setActive] = useState(false);
-
-  const toggle = () => setActive(!active);
-
-  return (
-    <Button onClick={toggle}>
-      {Home}
-    </Button>
-  );
-};
-
-const ToggleButton = () => {
-  const [isToggled, setIsToggled] = useState(false);
-
-  const toggle = () => setIsToggled(!isToggled);
-
-  return (
-    <Button onClick={toggle}>
-      {isToggled ? "On" : "Off"}
-    </Button>
-  );
-};
-
-const DropdownButton = ({options = ["Option 1", "Option 2", "Option 3"]}) => {
+const DropdownButton = ({options = ["Option 1", "Option 2", "Option 3"]}: any) => {
   const [selectedOption, setSelectedOption] = useState(options[0]);
-  const theme: any = useTheme();
-  return (
-    <LabeledArea border={"1px solid white"} theme={theme}>
-      <Label theme={theme}>{"Options"}:</Label>
-      <Select value={selectedOption} onChange={setSelectedOption} options={options} />
-    </LabeledArea>
-  );
+
+  const setOption = (option: any) => {
+    setSelectedOption(option);
+  };
+  return <LabeledSelector label={"Dropdown"} value={selectedOption} onChange={setOption} options={options} />
 };
 
 const TestControlPanel = () => {
+  const [toggleButtonState, setToggleButtonState] = useState(true);
+  const toggleButtonClicked = () => {
+    setToggleButtonState(!toggleButtonState);
+  };
+
+  const [toggleMode, setToggleMode] = useState(true);
+  const toggleToggleMode = () => {
+    setToggleMode(!toggleMode);
+  };
+
+
+  const [value, setValue] = useState<any>(0);
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
+  };
+  
   const buttons: any = [
     {
-      component: (<SimpleButton />),
-      i: "0",
+      component: (props: any) => <LabeledInput {...props} label={"input"} value={value} onChange={onChange}  />,
       x: 0,
       y: 0,
       width: 1,
       height: 1,
     },
     {
-      component: (<ToggleButton />),
-      i: "1",
+      component: (props: any) => <ToggleButton {...props} onClick={toggleButtonClicked} active={toggleButtonState} activeValue={'on'} defaultValue={'off'} />,
       x: 1,
       y: 1,
       width: 1,
       height: 1,
     },
     {
-      width: 1,
-      height: 1,
+      width: 2,
+      height: 2,
       x: 2,
       y: 2,
-      i: "2",
-      component: (<DropdownButton options={["Red", "Green", "Blue"]} />),
+      component: (props: any) => <DropdownButton {...props}  />
+    },
+    {
+      width: 1,
+      height: 1,
+      x: 3,
+      y: 3,
+      component: (props: any) => <ToggleButton {...props} onClick={toggleToggleMode} active={toggleMode} defaultValue={Home} />,
+    },
+    {
+      component: (props: any) => (
+        <ClickableButton onClick={() => {}}>
+                  <>React<br />Flow</>
+                </ClickableButton>
+      ),
+      x: 4,
+      y: 4,
     }
   ];
 
   return (
     <div style={{display: "flex", flexDirection: "column", width: "100%", height: "100%", justifyContent: "center", alignItems: "center"}}>
-      <div style={{display: "flex", flexDirection: "column", width: '50%', height: 'auto'}}>
+      <div style={{display: "flex", flexDirection: "column", width: '50%', height: '50%'}}>
         <FlowControlPanel buttons={buttons} />
       </div>
     </div>

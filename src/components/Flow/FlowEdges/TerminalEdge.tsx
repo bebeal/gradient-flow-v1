@@ -1,9 +1,10 @@
-import { EdgeLabelRenderer, EdgeProps, useReactFlow } from "reactflow";
+import { EdgeLabelRenderer, EdgeProps } from "reactflow";
 import styled, { createGlobalStyle, useTheme } from "styled-components";
 import { useFlowControls } from "../../../hooks";
-import { useEffect, useState } from "react";
-import { getEdgeProperties } from "./EdgeUtils";
-import { FlowEdgeLabel, FlowEdgeProps, InteractionLine } from "./FlowEdge";
+import { useContext, useEffect, useState } from "react";
+import { CustomEdgeProps } from "./EdgeUtils";
+import { useEdgeHandler } from "../../../hooks";
+import React from "react";
 
 export const Drawdash = createGlobalStyle`
 @-webkit-keyframes draw-terminal-line {
@@ -22,6 +23,7 @@ export const Drawdash = createGlobalStyle`
     stroke-dashoffset: 0;
   }
 }
+
 `;
 
 // The solid line
@@ -29,11 +31,13 @@ export const TerminalLineSolid = styled.path<any>`
   stroke: #b1b1b7;
   stroke-width: 4px;
   fill: none;
-  stroke-dasharray: 0 !important;
+  stroke-dasharray: 0 ${props => props.pathLength} !important;
   animation: none !important;
   pointer-events: all;
-  z-index: 55;
-
+  z-index: 60;
+  stroke-linecap: none;
+  stroke-linejoin: none;
+  clip-path: url(#clip);
 `;
 
 // The dashed line
@@ -46,67 +50,48 @@ export const TerminalLineDashed = styled.path<any>`
   pointer-events: all;
   z-index: 54;
   animation: ${(props) => (props.animated ? `draw-terminal-line ${props.selected ? "7s" : "10s"} linear infinite` : "none")} !important;
+  stroke-linecap: none;
+  stroke-linejoin: none;
 `;
 
-export const TerminalInteractionLine = styled.path<any>`
-  fill: none;
-  stroke-opacity: 0;
-  pointer-events: all;
-`;
-
-export const TerminalEdgeLabel = styled(FlowEdgeLabel)<any>`
-`;
-
-
-const TerminalEdge: React.FC<FlowEdgeProps> = (props) => {
-  const theme: any = useTheme();
-  const { style = { color: theme.primary }, animated, id, data, selected, source, target, sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, interactionWidth=20, markerEnd, markerStart, label, ...rest } = props;
-  const reactFlow = useReactFlow();
-  const sourceNode: any = reactFlow?.getNodes()?.find((node) => node.id === source);
-  const targetNode: any = reactFlow?.getNodes()?.find((node) => node.id === target);
-  const { path, centerX, centerY, offsetX, offsetY } = getEdgeProperties({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, });
-  const [isHovered, setIsHovered] = useState(false);
+const TerminalEdge: React.FC<CustomEdgeProps> = (props) => {
+  const edgeHandler = useEdgeHandler({...props, offset:{x: 3, y: -3} });
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const updateTerminalCode = () => {
-      if (loaded) return;
-      setLoaded(true);
-      if (sourceNode && sourceNode.data && sourceNode.data.code && sourceNode.data.code.length > 0 && targetNode) {
+      if (!loaded && edgeHandler?.sourceNode?.data?.code && edgeHandler?.sourceNode?.data?.code.length > 0 && edgeHandler?.targetNode) {
+        setLoaded(true);
         const newTargetNode = { 
-          ...targetNode, 
+          ...edgeHandler?.targetNode, 
           data: { 
-            ...targetNode?.data, 
+            ...edgeHandler?.targetNode?.data, 
             code: { 
-              ...targetNode.data?.code, 
-              [sourceNode.id]: sourceNode?.data?.code 
+              ...edgeHandler?.targetNode.data?.code, 
+              [edgeHandler?.sourceNode.id]: edgeHandler?.sourceNode?.data?.code 
             },
-            parseMarkdown: sourceNode?.data?.parseMarkdown,
+            parseFromMarkdown: edgeHandler?.sourceNode?.data?.parseFromMarkdown,
           } 
         };
-        reactFlow.setNodes((prevNodes: any) => prevNodes.map((node: any) => node.id === newTargetNode.id ? newTargetNode : node));
+        edgeHandler?.updateNodes(newTargetNode);
       }
-    };
+    }
     updateTerminalCode();
-  }, [loaded, source, sourceNode, target, targetNode]);
+  }, [edgeHandler?.sourceNode?.data?.code, edgeHandler?.targetNode]);
 
   return (
     <>
-      <TerminalLineSolid isHovered={isHovered} d={path} id={id} markerStart={markerStart} markerEnd={markerEnd} />
-      <TerminalLineDashed isHovered={isHovered} d={path} animated={animated} id={id} markerStart={markerStart} markerEnd={markerEnd} selected={selected} color={style?.color} />
-      {interactionWidth && (
-        <InteractionLine onMouseLeave={() => setIsHovered(false)} onMouseEnter={() => setIsHovered(true)} d={path} interactionWidth={interactionWidth} className="react-flow__edge-interaction" />
-      )}
-      {label && label.toString().length > 0 ? (
-        <EdgeLabelRenderer>
-          <TerminalEdgeLabel onMouseLeave={() => setIsHovered(false)} onMouseEnter={() => setIsHovered(true)} hover={isHovered ? theme.primary : (selected ? theme.primary : "#b1b1b7")} className='nodrag nopan' labelX={centerX} labelY={centerY} selected={selected}>
-            {label}
-          </TerminalEdgeLabel>
-        </EdgeLabelRenderer>
-        ) : <></>
-      }
-    </>
-  );
+    <Drawdash />
+    {edgeHandler?.path && (
+      <>
+        <TerminalLineSolid ref={edgeHandler?.pathRef} isHovered={edgeHandler?.isHovered} d={edgeHandler?.path} id={edgeHandler?.id} markerStart={edgeHandler?.selected || edgeHandler?.isHovered ? "url(#funnel-selected)" : "url(#funnel)"} markerEnd={edgeHandler?.selected || edgeHandler?.isHovered ? "url(#funnel-selected)" : "url(#funnel)"} />
+        <TerminalLineDashed isHovered={edgeHandler?.isHovered} d={edgeHandler?.path} animated={edgeHandler?.animated} id={edgeHandler?.id} selected={edgeHandler?.selected} color={edgeHandler?.theme?.primary} />
+      </>
+    )}
+    {edgeHandler?.InteractionComponent}
+    {edgeHandler?.EdgeLabel}
+  </>
+  )
 };
 
-export default TerminalEdge;
+export default React.memo(TerminalEdge);

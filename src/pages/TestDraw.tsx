@@ -37,7 +37,7 @@ const TestDraw = () => {
       onMouseMove={handleMouseMove}
     >
       <svg ref={pathRef} width="100%" height="100%">
-        {paths.map((singlePath: any, i: number) => <path key={i} d={singlePath} stroke="black" fill="none"/>)}
+        {paths.map((singlePath: any, i: number) => <path key={`path-${i}`} d={singlePath} stroke="black" fill="none"/>)}
         {drawing && <path d={path} stroke="black" fill="none"/>}
       </svg>
     </Fullpage>

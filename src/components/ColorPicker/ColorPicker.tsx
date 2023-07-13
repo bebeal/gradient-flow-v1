@@ -4,12 +4,21 @@ import Alpha from './Alpha';
 import Presets from './Presets';
 import Hue from './Hue';
 import Saturation from './Saturation';
-import { BarOptions, BarsWithResult, Color, ColorInputObject, ColorResult } from './ColorUtils';
-import { Divider } from '../../constants';
+import { Color, ColorInputObject } from './ColorUtils';
+import { Columns, Divider, Rows } from '../../constants';
+import ColorResult from './ColorResult';
 
 const ColorPickerWrapper = styled.div<any>`
-  background: ${(props) => props.theme.background};
+  background: ${(props) => props.theme.controlsBackground};
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
 `;
+
+export const ShowOverflow = styled.div`
+  
+  `;
 
 export interface ColorPickerProps {
   color: any;
@@ -18,31 +27,37 @@ export interface ColorPickerProps {
   presetColors?: string[];
 }
 
+// TODO: fix circular logic with hook state update vs this state
 const ColorPicker: FC<ColorPickerProps> = (props) => {
-  const { color: initialColor, onColorChange = () => {}, disableAlpha = false, presetColors =  ['#D0021B', '#F5A623', '#F8E71C', '#8B572A', '#7ED321', '#417505', '#BD10E0', '#9013FE', '#4A90E2', '#50E3C2', '#B8E986', '#000000', '#4A4A4A', '#9B9B9B', '#FFFFFF'] } = props;
-  const [color, setColor] = useState(new Color(initialColor));
+  const { color: initialColor, onColorChange = () => {}, disableAlpha = false, presetColors } = props;
+  const [color, setColor] = useState<any>(new Color(initialColor));
+  
+  useEffect(() => {
+    setColor(new Color(initialColor));
+  }, [initialColor]);
 
-  const handleColorChange = useCallback((updatedValue: ColorInputObject) => {
-    const newColor = new Color({ ...color, ...new Color(updatedValue) });
-    setColor(newColor);
+  const handleColorChange = useCallback((updatedValue: any) => {
+    const newColor = new Color({ ...color, ...updatedValue });
     onColorChange(newColor);
   }, [color, onColorChange]);
 
   return (
     <ColorPickerWrapper>
-      <Saturation hsv={color.toHsva()} onChange={handleColorChange} />
-      <BarsWithResult>
-        <BarOptions>
-        <Hue hsv={color.toHsva()} onChange={handleColorChange} />
-          {!disableAlpha && <Alpha rgb={color.toRgba()} onChange={handleColorChange} />}
-        </BarOptions>
-        <ColorResult color={color.toHexString()}/>
-      </BarsWithResult>
-      <Divider />
-      <Presets colors={presetColors} onChange={handleColorChange} />
+      <Columns>
+        <Saturation hsv={color.toHsva()} onChange={handleColorChange} />
+        <Rows gap={0}>
+          <Columns gap={0}>
+          <Hue hsv={color.toHsva()} onChange={handleColorChange} />
+            {!disableAlpha && <Alpha rgb={color.toRgba()} onChange={handleColorChange} />}
+          </Columns>
+          <ColorResult color={color.toHexString()}/>
+        </Rows>
+      </Columns>
+      <Divider height={'1px'} margin={'4px'} />
+      <Presets colors={presetColors} color={color.toHexString()} onChange={handleColorChange} />
     </ColorPickerWrapper>
   );
 };
 
 
-export default ColorPicker;
+export default React.memo(ColorPicker);

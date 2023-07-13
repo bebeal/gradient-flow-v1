@@ -1,10 +1,10 @@
 import { max } from "lodash";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Node } from "reactflow";
 import { StrokeStyleOptions, StrokeStyles } from "../components/StrokePicker/StrokePicker";
 import { FlowNodeTypes } from "../components";
 
-const useFreehandState = (storeState: any, reactFlow: any, mouseState: any, interactiveState: any, flowState: any, color: any = '#ff0072', strokeWidth: any = 1, strokeStyle: any = 'solid') => {
+const useFreehandState = (reactFlow: any, mouseState: any, interactiveState: any, flowState: any, strokeState: any, ready: boolean = false) => {
   const [freehandMode, setFreehandMode] = useState(false);
   const [drawing, setDrawing] = useState(false);
   const [path, setPath] = useState<any>([]);
@@ -24,16 +24,16 @@ const useFreehandState = (storeState: any, reactFlow: any, mouseState: any, inte
   }, [freehandMode, interactiveState]);
 
   const handleMouseDown = useCallback((e: any) => {
-    if (!freehandMode) { return; }
+    if (!freehandMode || !ready) { return; }
     e.preventDefault();
     setDrawing(true);
     setPath([{x: mouseState.flowCoords.x, y: mouseState.flowCoords.y}]);
     setMins([mouseState.flowCoords.x, mouseState.flowCoords.y]);
     setMaxs([mouseState.flowCoords.x, mouseState.flowCoords.y]);
-  }, [freehandMode, mouseState.flowCoords.x, mouseState.flowCoords.y]);
+  }, [freehandMode, mouseState.flowCoords.x, mouseState.flowCoords.y, ready]);
 
   const handleMouseMove = useCallback((e: any) => {
-    if (!freehandMode) { return; }
+    if (!freehandMode || !ready) { return; }
     if (drawing) {
       e.preventDefault();
       setMins([Math.min(mins[0], mouseState.flowCoords.x), Math.min(mins[1], mouseState.flowCoords.y)]);
@@ -44,13 +44,13 @@ const useFreehandState = (storeState: any, reactFlow: any, mouseState: any, inte
       };
       setPath((prevPath: any) => [...prevPath, point]);
     }
-  }, [freehandMode, drawing, mins, mouseState.flowCoords.x, mouseState.flowCoords.y, maxs]);
+  }, [freehandMode, ready, drawing, mins, mouseState.flowCoords.x, mouseState.flowCoords.y, maxs]);
 
   const handleMouseUp = useCallback((e: any) => {
-    if (!freehandMode || !drawing) { return; }
+    if (!freehandMode || !drawing || !ready) { return; }
     setDrawing(false);
   
-    const zoom = storeState.transform[2];
+    const zoom = reactFlow?.getZoom() || 1;
     const projectedPosition = reactFlow.project({ x: mins[0], y: mins[1] });  
 
     const newNode: Node = {
@@ -58,10 +58,10 @@ const useFreehandState = (storeState: any, reactFlow: any, mouseState: any, inte
       type: 'Freeform',
       position: projectedPosition,
       data: { 
-        color: color, 
+        color: strokeState.color, 
         path: path,
-        width: strokeWidth,
-        strokeDasharray: StrokeStyles[strokeStyle],
+        width: strokeState.strokeWidth,
+        strokeDasharray: StrokeStyles[strokeState.strokeStyle],
         zoom: zoom,
         mins: mins,
         maxs: maxs,
@@ -69,8 +69,9 @@ const useFreehandState = (storeState: any, reactFlow: any, mouseState: any, inte
     };
     reactFlow.addNodes([newNode]);
     setPath([]);
-  }, [freehandMode, drawing, storeState.transform, reactFlow, getId, color, path, strokeWidth, strokeStyle, mins, maxs]);
+  }, [freehandMode, drawing, ready, reactFlow, mins, getId, strokeState.color, strokeState.strokeWidth, strokeState.strokeStyle, path, maxs]);
 
+  return useMemo(() => {
   return {
     freehandMode,
     toggleFreehandMode,
@@ -79,7 +80,16 @@ const useFreehandState = (storeState: any, reactFlow: any, mouseState: any, inte
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
-  };
+  }
+}, [
+  freehandMode,
+  toggleFreehandMode,
+  drawing,
+  path,
+  handleMouseDown,
+  handleMouseMove,
+  handleMouseUp,
+]);
 };
 
 export default useFreehandState;

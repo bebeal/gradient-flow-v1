@@ -23,7 +23,7 @@ const TestFlow = (props: TestFlowProps) => {
   return (
     <CenteredFlexBox>
       <TestFlowWrapper>
-        <FlowProvider nodes={nodesForFlow} edges={edgesForFlow} />
+        <FlowProvider initialNodes={nodesForFlow} initialEdges={edgesForFlow} />
       </TestFlowWrapper>
     </CenteredFlexBox>
   )

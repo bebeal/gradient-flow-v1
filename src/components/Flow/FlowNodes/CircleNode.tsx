@@ -2,8 +2,8 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import styled, { useTheme } from 'styled-components';
 import { Handle, NodeProps, NodeResizer, Position } from 'reactflow';
 import { nanoid } from 'nanoid';
-import { BaseNodeStyle, FlowNodeLabel, FlowNodeProps, FlowNodeWrapper, getHandles } from './FlowNode';
 import { throttle } from 'lodash';
+import { CustomNodeProps } from './NodeUtils';
 
 const Ellipse = styled.ellipse<any>`
   fill: ${(props) => props.theme.nodeBackground};
@@ -33,7 +33,7 @@ export const CircleLabel = styled.div<any>`
   flex-wrap: wrap;
 `;
 
-export const CircleNode: React.FC<FlowNodeProps> = (props) => {
+export const CircleNode: React.FC<CustomNodeProps> = (props) => {
   const { id, data, xPos, yPos, selected, type='CircleNode', resizeable=true, inPanel=false, isConnectable=true, zIndex=60, ...rest } = props;
   const theme: any = useTheme();
   const hoverable = true;

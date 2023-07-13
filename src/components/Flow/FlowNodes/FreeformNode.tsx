@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { NodeResizer } from 'reactflow';
 import styled, { useTheme } from 'styled-components';
 import { throttle } from 'lodash';
-import { FlowNodeProps } from './FlowNode';
+import { CustomNodeProps } from './NodeUtils';
 
 const SVGWrapper = styled.div<any>`
   z-index: 50;
@@ -12,7 +12,7 @@ const SVGWrapper = styled.div<any>`
   height: 100%;
 `;
 
-const FreeformNode: React.FC<FlowNodeProps> = (props: any) => {
+const FreeformNode: React.FC<CustomNodeProps> = (props: any) => {
   const theme: any = useTheme();
   const { id, data, xPos, yPos, selected, type='Freeform', resizeable=true, inPanel=false, isConnectable=false, zIndex=60, ...rest } = props;
   

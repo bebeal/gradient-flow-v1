@@ -21,14 +21,18 @@ export const StrokeStyleOptions = Object.keys(StrokeStyles);
 const StrokeContainer = styled.div<any>`
   display: flex;
   flex-direction: column;
-  background: ${(props) => props.theme.background};
+  background: ${(props) => props.theme.controlsBackground};
 `;
 
-const StrokeOptionSquare = styled.svg<any>`
-  width: 24px;
-  height: 24px;
-  margin: 8px;
-  cursor: pointer;
+const StrokeOptionWrapper = styled.div<any>`
+background: ${(props) => props.theme.controlsBackground};
+padding: 8px;
+border: 1px solid ${(props) => props.selected ? props.theme.primary : props.theme.controlsBorder};
+border-radius: 4px;
+box-shadow: 0 0 0 1px rgba(0,0,0,.15), 0 8px 16px rgba(0,0,0,.15);
+display: flex;
+cursor: pointer;
+
 `;
 
 const StrokeOptionRow = styled.div`
@@ -36,7 +40,7 @@ const StrokeOptionRow = styled.div`
   gap: 4px;
 `;
 
-const StrokePicker: React.FC<StrokePickerProps> = ({ strokeWidth: initialStrokeWidth = 1, strokeStyle: initialStrokeStyle = StrokeStyleOptions[0], onStrokeChange, color='#ff0072' }) => {
+const StrokePicker: React.FC<StrokePickerProps> = ({ strokeWidth: initialStrokeWidth = 2, strokeStyle: initialStrokeStyle = StrokeStyleOptions[0], onStrokeChange, color='#ff0072' }) => {
   const [selectedThickness, setSelectedThickness] = useState<number>(initialStrokeWidth);
   const [selectedStyle, setSelectedStyle] = useState<string>(initialStrokeStyle);
 
@@ -66,14 +70,12 @@ const StrokePicker: React.FC<StrokePickerProps> = ({ strokeWidth: initialStrokeW
         />
       </StrokeOptionRow>
       <StrokeOptionRow>
-        {StrokeStyleOptions.map((style) => (
-          <StrokeOptionSquare
-            color={color}
-            key={style}
-            onClick={() => handleStyleChange(style)}
-          >
+        {StrokeStyleOptions.map((style, index) => (
+          <StrokeOptionWrapper onClick={() => handleStyleChange(style)} key={`stroke-${style}-${index}`} selected={style === selectedStyle}>
+          <svg width={"100%"} height={"100%"} viewBox="0 0 24 24">
             <rect width="100%" height="100%" fill="transparent" stroke={color} strokeWidth={selectedThickness} strokeDasharray={StrokeStyles[style]} />
-          </StrokeOptionSquare>
+          </svg>
+          </StrokeOptionWrapper>
         ))}
       </StrokeOptionRow>
     </StrokeContainer>

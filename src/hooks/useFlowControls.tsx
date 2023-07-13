@@ -1,77 +1,57 @@
-import { FitViewOptions, Node, getRectOfNodes, useNodesInitialized, useReactFlow, useStore, useStoreApi, useViewport } from "reactflow";
+import { FitViewOptions, Node, getRectOfNodes, useEdgesState, useNodesInitialized, useNodesState, useReactFlow, useStore, useStoreApi, useViewport } from "reactflow";
 import { FlowFitViewOptions } from "../components/Flow/FlowConstants";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toPng } from "html-to-image";
 import { downloadImage } from "../components/Flow/FlowConstants";
-import { useFlowState, useStrokeState, useInteractiveState, useFreehandState, useMouseState, useSelectedState, useLayoutState, useZoomState, useMouseCursorState, useDraggableState, useEdgeCreationState } from ".";
+import { useStrokeState, useInteractiveState, useFreehandState, useMouseState, useSelectedState, useElkLayout, useMouseCursorState, useDraggableState, useHistory, useButtonStore, useFlowActions, useViewportState, useEdgeState } from ".";
 
 // one hook to rule them all
-const useFlowControls = (flowRef?: any, fitOnLoad: boolean = true, id='flow') => {
-  const store = useStoreApi();
+const useFlowControls = (initialNodes: any = [], initialEdges: any = [], flowRef?: any,  fitOnLoad: boolean = true, id='flow') => {
+  // state
+  const [ready, setReady] = useState(false);          // used to prevent some hooks from running until the flow is ready
+  const [canFit, setCanFit] = useState(false);        // used to prevent the flow from fitting until the nodes are initialized
+
+  // data
   const reactFlow = useReactFlow();
-  const storeState = useStore((state: any) => state);
+  const store = useStoreApi();
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  
+  // const storeState = useStore((state: any) => state);
   const rfInstanceDom = document.getElementById(id);
+
+  // sub-hooks
   const nodesInitialized = useNodesInitialized({ includeHiddenNodes: true });
-
-  const selectedState = useSelectedState(storeState, reactFlow);
-  const layoutState = useLayoutState(reactFlow, storeState);
+  const selectedState = useSelectedState(reactFlow);
   const interactiveState = useInteractiveState();
-  const zoomState = useZoomState(storeState, reactFlow);
   const strokeState = useStrokeState();
-  const mouseState = useMouseState(rfInstanceDom);
-  const flowState = useFlowState(storeState, reactFlow, rfInstanceDom, nodesInitialized);
-  const freehandState = useFreehandState(storeState, reactFlow, mouseState, interactiveState, flowState, strokeState.color, strokeState.strokeWidth, strokeState.strokeStyle);
-  const mouseCursorState = useMouseCursorState(interactiveState, freehandState);
   const dragState = useDraggableState(reactFlow, flowRef);
-  const edgeCreationState = useEdgeCreationState(storeState, reactFlow, rfInstanceDom, layoutState, fitOnLoad);
+  const mouseState = useMouseState(rfInstanceDom, ready);
+  const viewportState = useViewportState(reactFlow, rfInstanceDom, ready);
+  const freehandState = useFreehandState(reactFlow, mouseState, interactiveState, viewportState, strokeState, ready);
+  const mouseCursorState = useMouseCursorState(interactiveState, freehandState);
+  const edgeState = useEdgeState(reactFlow, rfInstanceDom, viewportState, fitOnLoad);
+  const flowActions = useFlowActions(canFit, reactFlow, strokeState, selectedState, viewportState);
+  const layoutState = useElkLayout(reactFlow, flowActions, ready);
+  const history = useHistory(reactFlow, viewportState, ready && flowActions.fitOnInitDone);
 
-  const goToReactFlow = useCallback(() => { window.open('https://reactflow.dev/', '_blank') }, []);
-
-  const onPaneClick = useCallback(() => { 
-    strokeState.closeColorPicker() 
-  }, [strokeState]);
-
-  // Get the size (width, height) of the given node
-  const getNodeSize = useCallback((id: any) => {
-    const node = storeState.nodeInternals.get(id);
-    return { width: node?.width, height: node?.height };
-  }, [storeState.nodeInternals]);
-
-  // Center the given node
-  const centerNode = useCallback((node: Node<any>, select: any = true) => {
-    if (select) {
-      selectedState.selectNode(node);
-    }
-    layoutState.fitNodesWithOffset([node]);
-  }, [layoutState, selectedState]);
-
-  // Take a snapshot of the current flow, with or without the background
-  const takeSnapshot = useCallback((includeBackground = true) => {
-    let flow: any = document.querySelector('.react-flow');
-    if (!includeBackground) {
-      flow = document.querySelector('.react-flow__pane');
-    }
-    toPng(flow, {
-      filter: (node: any) => {
-        // we don't want to add the minimap and the controls to the image
-        if ( node?.classList?.contains("react-flow__minimap") || node?.classList?.contains("react-flow__controls") ) {
-          return false;
-        }
-        return true;
-      }
-    }).then(downloadImage);
-  }, []);
+  // button store
+  const buttonStore = useButtonStore(ready, flowActions, reactFlow, strokeState, freehandState, selectedState, layoutState, viewportState, history, interactiveState);
 
   useEffect(() => {
-    if (fitOnLoad && nodesInitialized && reactFlow.viewportInitialized) {
-      setTimeout(() => {
-        layoutState.fitNodesWithOffset();
-      }, 100);
+    if (canFit && fitOnLoad) {
+      flowActions.fitNodesWithOffset();
+      setReady(true);
     }
- }, [fitOnLoad, nodesInitialized, reactFlow.viewportInitialized, layoutState.fitNodesWithOffset]);
+  }, [canFit, fitOnLoad, flowActions.fitNodesWithOffset, reactFlow]);
+
+  useEffect(() => {
+    if (!canFit && nodesInitialized && reactFlow.viewportInitialized) {
+      setCanFit(true);
+    }
+  }, [nodesInitialized, reactFlow, reactFlow.viewportInitialized, canFit]);
 
   return useMemo(() => ({
-    ...store,
     ...reactFlow,
     ...selectedState,
     ...mouseState,
@@ -79,20 +59,24 @@ const useFlowControls = (flowRef?: any, fitOnLoad: boolean = true, id='flow') =>
     ...freehandState,
     ...interactiveState,
     ...layoutState,
-    ...zoomState,
     ...mouseCursorState,
-    ...flowState,
     ...dragState,
-    ...edgeCreationState,
-    goToReactFlow,
-    onPaneClick,
-    nodesInitialized,
-    getNodeSize,
-    centerNode,
-    takeSnapshot,
-    
-  }), [
+    ...edgeState,
+    ...history,
+    ...viewportState,
+    ...flowActions,
+    ...buttonStore,
     store,
+    id,
+    nodes,
+    setNodes,
+    onNodesChange,
+    edges,
+    setEdges,
+    onEdgesChange,
+    ready,
+    nodesInitialized,
+  }), [
     reactFlow,
     selectedState,
     mouseState,
@@ -100,17 +84,23 @@ const useFlowControls = (flowRef?: any, fitOnLoad: boolean = true, id='flow') =>
     freehandState,
     interactiveState,
     layoutState,
-    zoomState,
     mouseCursorState,
-    flowState,
     dragState,
-    edgeCreationState,
-    goToReactFlow,
-    onPaneClick,
+    edgeState,
+    history,
+    viewportState,
+    flowActions,
+    buttonStore,
+    store,
+    id,
+    nodes,
+    setNodes,
+    onNodesChange,
+    edges,
+    setEdges,
+    onEdgesChange,
+    ready,
     nodesInitialized,
-    getNodeSize,
-    centerNode,
-    takeSnapshot,
   ]);
 };
 

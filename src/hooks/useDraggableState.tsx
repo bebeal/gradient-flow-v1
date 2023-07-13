@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 const useDraggableState = (reactFlow: any, flowRef?: any, defaultNodeSize: any = {width: 100, height: 60}) => {
 
@@ -11,14 +11,14 @@ const useDraggableState = (reactFlow: any, flowRef?: any, defaultNodeSize: any =
   }, [id]);
   
   const onDragOver = useCallback((event: any) => {
+    if (!droppable || !flowRef.current) return;
     event.preventDefault();
-    if (!droppable) return;
     event.dataTransfer.dropEffect = "move";
-  }, [droppable]);
+  }, [droppable, flowRef]);
 
   const onDrop = useCallback((event: any) => {
-    event.preventDefault();
     if (!droppable || !flowRef.current) return;
+      event.preventDefault();
       const reactFlowBounds = flowRef.current?.getBoundingClientRect();
       const type: any = event.dataTransfer.getData("application/reactflow");
       if (typeof type === "undefined" || !type) {
@@ -41,16 +41,21 @@ const useDraggableState = (reactFlow: any, flowRef?: any, defaultNodeSize: any =
 
       reactFlow.addNodes([newNode]);
       
-    },
-    [defaultNodeSize?.height, defaultNodeSize?.width, droppable, flowRef, getId, reactFlow]
-  );
+    }, [defaultNodeSize?.height, defaultNodeSize?.width, droppable, flowRef, getId, reactFlow] );
 
-  return {
+  return useMemo(() => {
+    return {
     droppable,
     setDroppable,
     onDragOver,
     onDrop,
-  };
+  }
+}, [
+  droppable,
+  setDroppable,
+  onDragOver,
+  onDrop,
+]);
 };
 
 export default useDraggableState;

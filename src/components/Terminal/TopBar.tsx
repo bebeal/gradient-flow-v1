@@ -23,8 +23,8 @@ const Bar = styled.div<any>`
   width: auto;
   height: 30px;
   background: #343541;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
   padding: 4px;
   justify-content: space-between;
   align-items: center;
@@ -42,7 +42,6 @@ const LanguageWrapper = styled.div<any>`
   align-items: center;
   text-align: center;
   height: 100%;
-  max-width: 25%;
   overflow: auto;
   top: -1px;
   font-size: ${props => props.fontSize || '12px'};
@@ -53,8 +52,9 @@ const IconWrapper = styled.div<any>`
   justify-content: center;
   align-items: center;
   text-align: center;
-  margin-right: 2px;
+  width: auto;
   height: 100%;
+  padding: 4px;
 `;
 
 const TitleWrapper = styled.div<any>`
@@ -89,8 +89,8 @@ const TopBar = forwardRef<any>(({
   fontSize='12px'
  }: TopBarProps, ref: any) => {
   const copyButtonRef = useRef<any>(null);
-  const languageRef = useRef<any>(null);
-  const [overflowing, setOverflowing] = useState(false);
+  // const languageRef = useRef<any>(null);
+  // const [overflowing, setOverflowing] = useState(false);
   const tag = Object.keys(OrgTags).includes(language) ? OrgTags[language](0, copyButton.size || '12px', copyButton.size || '12px').icon : undefined;
 
   const triggerButton = () => {
@@ -99,32 +99,32 @@ const TopBar = forwardRef<any>(({
     }
   };
 
-  useEffect(() => {
-    const checkOverflow = () => {
-      if (languageRef.current) {
-        setOverflowing(languageRef.current.scrollWidth > languageRef.current.clientWidth);
-      }
-    };
+  // useEffect(() => {
+  //   const checkOverflow = () => {
+  //     if (languageRef.current) {
+  //       setOverflowing(languageRef.current.scrollWidth > languageRef.current.clientWidth);
+  //     }
+  //   };
 
-    const resizeObserver = new ResizeObserver((entries) => {
-      setOverflowing(false);
-      setTimeout(checkOverflow, 1);
-    });
+  //   const resizeObserver = new ResizeObserver((entries) => {
+  //     setOverflowing(false);
+  //     setTimeout(checkOverflow, 1);
+  //   });
 
-    if (ref.current) {
-      resizeObserver.observe(ref.current);
-    }
+  //   if (ref.current) {
+  //     resizeObserver.observe(ref.current);
+  //   }
 
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [ref, languageRef]);
+  //   return () => {
+  //     resizeObserver.disconnect();
+  //   };
+  // }, [ref, languageRef]);
 
   return (
     <BarWrapper ref={ref} className={className} >
       <Bar onClick={triggerButton} >
         <IconWrapper>{tag}</IconWrapper>
-        <LanguageWrapper ref={languageRef} fontSize={fontSize}>{overflowing ? '' : language}</LanguageWrapper>
+        {/* <LanguageWrapper fontSize={fontSize}>{language}</LanguageWrapper> */}
         <TitleWrapper fontSize={fontSize}>{title}</TitleWrapper>
         {copyButton && Object.keys(copyButton).length > 0 && (
           <PushRight>

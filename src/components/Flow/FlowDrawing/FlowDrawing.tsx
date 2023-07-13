@@ -8,7 +8,7 @@ interface FlowDrawingProps {
 };
 
 const FlowDrawing = forwardRef<SVGSVGElement, FlowDrawingProps>((props, ref) => {
-  const { color="#ff0072", strokeWidth=1, strokeDasharray='', path, ...rest } = props;
+  const { color="#ff0072", strokeWidth=2, strokeDasharray='', path, ...rest } = props;
   const pathData = path.map((point: any, index: any) => `${index === 0 ? 'M' : 'L'}${point.x} ${point.y}`).join(' ');
 
   return (

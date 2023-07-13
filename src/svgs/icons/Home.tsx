@@ -6,4 +6,4 @@ const Home = (width?: string, height?: string, fill: string = 'currentColor', st
   return makeSVGFromJSXPath(path, attributes, viewBox);
 };
 
-export default Home("", "100%");
+export default Home("", "");

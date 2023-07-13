@@ -1,5 +1,5 @@
 import React, { forwardRef } from "react";
-import { Background } from "reactflow";
+import { Background, BackgroundProps } from "reactflow";
 import styled from "styled-components";
 
 export const BackgroundStyled = styled(Background)<any>`
@@ -7,14 +7,15 @@ export const BackgroundStyled = styled(Background)<any>`
   height: 100%;
 `;
 
-export interface FlowBackgroundProps {
+export interface FlowBackgroundProps extends BackgroundProps {
+  
 };
 
 const FlowBackground: React.FC<FlowBackgroundProps> = forwardRef<any, FlowBackgroundProps>((props, ref) => {
-  const { } = props;
+  const { id } = props;
 
   return (
-    <BackgroundStyled ref={ref} />
+    <BackgroundStyled {...props} id={id} ref={ref} />
   );
 });
 

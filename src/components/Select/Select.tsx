@@ -1,65 +1,85 @@
-import React, { useState, ReactNode, useRef, useEffect } from 'react';
+import React, { useState, ReactNode, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import styled, { useTheme } from 'styled-components';
-import { Box } from '../../constants';
+import { Box, Flex } from '../../constants';
 import { createPortal } from 'react-dom';
 import { ChevronSort } from '../../svgs/icons';
+import { nanoid } from 'nanoid';
 
-export const SelectButton = styled.button<any>`
-  z-index: 50;
-  font-family: 'Berkeley Mono', 'Roboto', sans-serif;
-  color: ${(props) => props.theme.controlsColor};
-  background: transparent;
-  border: none;
+export const SelectButton = styled.div<any>`
+  border: 1px solid ${(props) => props.theme.controlsBorder};
+  background: ${(props) => props.theme.minimapMaskBackground};
   border-radius: 4px;
-  font-size: 0.8rem;
-  width: 100%;
-  height: 100%;
-  font-weight: bold;
-  margin: 0;
-  padding: 0px;
-  text-align: left;
-  text-transform: capitalize;
-  cursor: pointer;
+  padding: 0px 4px;
 
   display: flex;
-  justify-content: space-between;
+  width: 100%;
+  height: auto;
+  justify-content: center;
   align-items: center;
-  position: relative;
+  padding: 2px;
+
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-all; 
+
+  z-index: 50
+  pointer-events: all;
 
   &:focus, &:focus-visible {
     outline: none;
   }
+
+  > svg {
+    width: 0.7rem !important;
+  }
+
+  &:hover {
+    border: 1px solid ${(props) => props.theme.controlsColor};
+  }
+  
 `;
+
 
 export const Dropdown = styled.div<any>`
   z-index: 50;
-  font-family: 'Berkeley Mono', 'Roboto', sans-serif;
   color: ${(props) => props.theme.controlsColor};
-  background: ${(props) => props.theme.controlsBackground};
-  border: 0.5px solid ${(props) => props.theme.controlsBorder};
+  background: ${(props) => props.theme.minimapMaskBackground};
+  border: 1px solid ${(props) => props.theme.controlsBorder};
   border-radius: 4px;
+  position: absolute;
+  top: ${(props) => props.rect.bottom}px;
+  left: ${(props) => props.rect.left}px;
+  width: ${(props) => props.rect.width}px;
+  height: auto;
+  padding: 2px;
+  overflow-y: auto;
+  &:hover {
+    border: 1px solid ${(props) => props.theme.controlsColor};
+  }
 `;
 
 export const Option = styled.div<any>`
-  z-index: 50;
-  font-family: 'Berkeley Mono', 'Roboto', sans-serif;
+  border-radius: 4px;
+  width: 100%;
+  height: 100%;
+  font-weight: bold;
+  margin: 0;
+  padding: 1px;
+  text-align: center;
+  text-transform: capitalize;
+  font-size: 0.7rem;
   color: ${(props) => props.theme.controlsColor};
-  background: ${(props) => props.theme.controlsBackground};
+  background: ${(props) => props.theme.minimapMaskBackground};
   cursor: pointer;
+
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+
   &:hover {
     background: ${(props) => props.theme.controlsBackgroundHover};
   }
-
-  border-radius: 4px;
-  padding: 2px;
-  width: 100%;
-  font-size: 0.8rem;
-  font-weight: bold;
-  margin: 0;
-  padding: 2px;
-  text-align: left;
-  text-transform: capitalize;
-  position: relative;
 `;
 
 interface SelectOptionProps {
@@ -69,14 +89,8 @@ interface SelectOptionProps {
 };
 
 const SelectOption = ({ value, children, onSelect, closeMenu }: SelectOptionProps & { closeMenu: () => void; }) => {
-  const theme = useTheme();
   return (
-    <Option theme={theme} onClick={() => {
-      onSelect(value);
-      closeMenu();
-    }}>
-      {children}
-    </Option>
+    <Option onClick={(event: any) => { event.stopPropagation(); onSelect(value); closeMenu(); }}> {children} </Option>
   );
 };
 
@@ -87,39 +101,54 @@ export interface SelectProps {
 };
 
 const Select = (props: SelectProps) => {
-  const theme = useTheme();
   const { value, onChange, options } = props;
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLButtonElement>(null);
   const [rect, setRect] = useState<DOMRect | null>(null);
-
-  const toggling = () => {
+  
+  const toggling = useCallback(() => {
     setIsOpen(!isOpen);
-  };
-  const closeMenu = () => setIsOpen(false);
+  }, [isOpen]);
 
-  useEffect(() => {
-    if (ref.current) {
+  const closeMenu = useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (isOpen && ref.current) {
       setRect(ref.current.getBoundingClientRect());
     }
   }, [isOpen]);
 
+  // Close dropdown if clicked outside of it
+  useEffect(() => {
+    const handleClickOutside = (event: any) => {
+      if (ref.current && !ref.current.contains(event.target)) {
+        closeMenu();
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('click', handleClickOutside);
+    } else {
+      document.removeEventListener('click', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [isOpen, closeMenu]);
+
+  const onChangeCallback = useCallback((value: string) => {
+    onChange(value);
+  }, [onChange]);
+
   return (
     <>
-      <SelectButton ref={ref} theme={theme} onClick={toggling}>{/* selected={!isOpen} */}
-        {value}
-        {ChevronSort}
-      </SelectButton>
+      <SelectButton ref={ref} onClick={toggling}>{value} {ChevronSort} </SelectButton>
       {isOpen && rect &&
         createPortal(
-          <Dropdown theme={theme} style={{
-            position: 'fixed',
-            top: rect.bottom,
-            left: rect.left,
-            width: rect.width,
-          }}>
-            {options.map((option) => (
-              <SelectOption key={option} value={option} onSelect={onChange} closeMenu={closeMenu}>
+          <Dropdown rect={rect}>
+            {options.map((option, index) => (
+              <SelectOption key={`selected-${option}-${index}`} value={option} onSelect={onChangeCallback} closeMenu={closeMenu}>
                 {option}
               </SelectOption>
             ))}

@@ -81,7 +81,7 @@ export const HierarchicalNodes: any = [
   {
     type: 'Terminal',
     id: "Terminal",
-    position: { x: 400, y: 250 },
+    position: { x: 500, y: 300 },
     data: {
       label: "Terminal",
       parseFromMarkdown: true,
@@ -98,8 +98,8 @@ export const HierarchicalEdges: any = [
     type: hierarchialEdgeType,
     animated: true,
     label: showHierarchicalEdgeLabels ? "e0" : "",
-    sourceHandle: hierarchialSourceHandle,
-    targetHandle: hierarchialTargetHandle,
+    // sourceHandle: hierarchialSourceHandle,
+    // targetHandle: hierarchialTargetHandle,
   },
   // {
   //   id: "e-1[0][2]",
@@ -118,8 +118,8 @@ export const HierarchicalEdges: any = [
     type: hierarchialEdgeType,
     animated: true,
     label: showHierarchicalEdgeLabels ? "e2" : "",
-    sourceHandle: hierarchialSourceHandle,
-    targetHandle: hierarchialTargetHandle,
+    // sourceHandle: hierarchialSourceHandle,
+    // targetHandle: hierarchialTargetHandle,
   },
   // {
   //   id: "e-3[1][4]",
@@ -135,11 +135,11 @@ export const HierarchicalEdges: any = [
     id: "e-3[3][T]",
     source: "node-3",
     target: "Terminal",
-    type: "terminal",
+    type: "Terminal",
     animated: true,
     label: showHierarchicalEdgeLabels ? "e3" : "",
-    sourceHandle: 'right',
-    targetHandle: 'left',
+    // sourceHandle: 'right',
+    // targetHandle: 'left',
   },
 ];
 

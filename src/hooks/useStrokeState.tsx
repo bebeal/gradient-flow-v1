@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Color } from '../components/ColorPicker';
 
 const useStrokeState = (initialColor = '#ff0072', initialStrokeWidth = 1, initialStrokeStyle = 'solid') => {
@@ -7,9 +7,9 @@ const useStrokeState = (initialColor = '#ff0072', initialStrokeWidth = 1, initia
   const [strokeStyle, setStrokeStyle] = useState<any>(initialStrokeStyle);
   const [displayColorPicker, setDisplayColorPicker] = useState(false);
 
-  const handleColorChange = (colorResult: any) => {
+  const handleColorChange = useCallback((colorResult: any) => {
     setColor(colorResult.toHexString());
-  };
+  }, []);
 
   const toggleColorPicker = useCallback(() => {
     setDisplayColorPicker(!displayColorPicker);
@@ -19,12 +19,25 @@ const useStrokeState = (initialColor = '#ff0072', initialStrokeWidth = 1, initia
     setDisplayColorPicker(false);
   }, []);
 
-  const handleStrokeChange = (strokeWidth: number, strokeStyle: string) => {
+  const handleStrokeChange = useCallback((strokeWidth: number, strokeStyle: string) => {
     setStrokeWidth(strokeWidth);
     setStrokeStyle(strokeStyle);
-  };
+  }, []);
 
-  return { color, handleColorChange, displayColorPicker, toggleColorPicker, closeColorPicker, strokeWidth, setStrokeWidth, strokeStyle, setStrokeStyle, handleStrokeChange };
+  return useMemo(() => {
+    return { 
+    color, 
+    handleColorChange, 
+    displayColorPicker, 
+    toggleColorPicker, 
+    closeColorPicker, 
+    strokeWidth, 
+    setStrokeWidth, 
+    strokeStyle, 
+    setStrokeStyle, 
+    handleStrokeChange 
+  };
+}, [closeColorPicker, color, displayColorPicker, handleColorChange, handleStrokeChange, strokeStyle, strokeWidth, toggleColorPicker]);
 };
 
 export default useStrokeState;

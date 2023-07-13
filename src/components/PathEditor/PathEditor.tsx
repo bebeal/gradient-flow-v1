@@ -2,22 +2,25 @@ import React from 'react';
 import styled, { useTheme } from 'styled-components';
 import StrokePicker, { StrokePickerProps } from '../StrokePicker/StrokePicker';
 import ColorPicker, { ColorPickerProps } from '../ColorPicker/ColorPicker';
-import { Divider } from '../../constants';
+import { Divider, getOpaqueColor, noop } from '../../constants';
 
 const PathEditorContainer = styled.div<any>`
+  z-index: 50;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  height: 100%;
+  width: 100%;
+  height: auto;
   padding: 8px;
-  box-sizing: initial;
-  background: ${(props) => props.theme.background};
-  border: 1px solid ${(props) => props.theme.border};
+  background: ${(props) => props.theme.controlsBackground};
   border-radius: 4px;
   box-shadow: 0 0 0 1px rgba(0,0,0,.15), 0 8px 16px rgba(0,0,0,.15);
-  width: auto;
-  pointer-events: auto;
+  border: 1px solid ${(props) => getOpaqueColor(props.theme.controlsColor) || 'transparent'};
+
+  pointer-events: all;
   cursor: auto;
+  position: relative;
+
 `;
 
 export interface PathEditorProps {
@@ -31,7 +34,7 @@ export interface PathEditorProps {
 };
 
 const PathEditor: React.FC<PathEditorProps> = (props) => {
-  const { strokeWidth=1, strokeStyle='solid', onStrokeChange, color='#ff0072', onColorChange = () => {}, disableAlpha = false, presetColors =  ['#D0021B', '#F5A623', '#F8E71C', '#8B572A', '#7ED321', '#417505', '#BD10E0', '#9013FE', '#4A90E2', '#50E3C2', '#B8E986', '#000000', '#4A4A4A', '#9B9B9B', '#FFFFFF'] } = props;
+  const { strokeWidth=1, strokeStyle='solid', onStrokeChange, color='#ff0072', onColorChange, disableAlpha = false, presetColors } = props;
   
   return (
     <PathEditorContainer>

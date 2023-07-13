@@ -5,6 +5,9 @@
   "dependencies": {
     "@fontsource/roboto": "^4.5.8",
     "d3": "^7.8.5",
+    "d3-drag": "^3.0.0",
+    "d3-quadtree": "^3.0.1",
+    "d3-selection": "^3.0.0",
     "elkjs": "^0.8.2",
     "html-to-image": "^1.11.11",
     "lodash": "^4.17.21",
@@ -29,7 +32,7 @@
     "react-scripts": "5.0.1",
     "react-syntax-highlighter": "^15.5.0",
     "react-tabs": "^6.0.1",
-    "reactflow": "^11.7.2",
+    "reactflow": "^11.7.4",
     "rehype-katex": "^6.0.3",
     "remark-math": "^5.1.1",
     "run": "^1.4.0",

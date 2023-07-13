@@ -1,4 +1,48 @@
-import { Position, getSmoothStepPath } from "reactflow";
+import { EdgeProps, Position, getBezierPath, getSmoothStepPath } from "reactflow";
+import styled from "styled-components";
+import { CustomNodeStyle } from "../FlowNodes";
+
+export const CustomEdgeLabel = styled<any>(CustomNodeStyle).attrs((props: any) => ({
+  style: {
+    transform: `translate(-50%, -50%) translate(${props.labelX}px,${props.labelY}px)`,
+    border: `1px solid ${props.isHovered || props.selected ? props.theme.primary : "#b1b1b7"}`
+  },
+}))`
+  z-index: 50;
+  cursor: pointer;
+  position: absolute;
+  pointer-events: none;
+  opacity: 1;
+
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  background: ${(props: any) => props.theme.nodeBackground};
+  border-radius: ${(props: any) => props.labelBgBorderRadius || 4}px;
+  padding: 0 4px;
+`;
+
+export const InteractionLine = styled.path<any>`
+  z-index: 50;
+  pointer-events: stroke;
+  stroke-dasharray: none;
+  animation: none;
+  overflow: hidden;
+  stroke-opacity: 0;
+  stroke-width: ${(props) => props.interactionWidth};
+`;
+
+export interface CustomEdgeProps extends EdgeProps {
+  children?: any;
+  style?: any;
+  dashLength?: number;
+  floating?: boolean;
+  pathType?: string;
+  trackHandles?: boolean;
+  trackPathLength?: boolean;
+  offset?: { x: number, y: number };
+};
 
 export const getCubicBezierPathString = (fromX: any, fromY: any, toX: any, toY: any) => {
   return `M${fromX},${fromY} C ${fromX} ${toY} ${fromX} ${toY} ${toX},${toY}`;
@@ -30,7 +74,7 @@ export const getUnitNorm = (source: any, target: any, atCenter: boolean): any =>
 
 // Returns the intersection point on the border of the targetNode
 // given a line originating from the center of sourceNode to the center of the targetNode
-const getNodeIntersections = (sourceNode: any, targetNode: any): any => {
+const getNodeBorderIntersections = (sourceNode: any, targetNode: any): any => {
   // Get the source and target node dimensions and positions
   const sourceWidth = sourceNode.width;
   const sourceHeight = sourceNode.height;
@@ -69,6 +113,36 @@ const getNodeIntersections = (sourceNode: any, targetNode: any): any => {
     y: targetCenter.y - minDistance * unitVector.y
   };
   return intersection;
+}
+
+// this helper function returns the intersection point
+// of the line between the center of the intersectionNode and the target node
+const getNodeIntersections = (intersectionNode: any, targetNode: any) => {
+  // https://math.stackexchange.com/questions/1724792/an-algorithm-for-finding-the-intersection-point-between-a-center-of-vision-and-a
+  const {
+    width: intersectionNodeWidth,
+    height: intersectionNodeHeight,
+    positionAbsolute: intersectionNodePosition,
+  } = intersectionNode;
+  const targetPosition = targetNode.positionAbsolute;
+
+  const w = intersectionNodeWidth / 2;
+  const h = intersectionNodeHeight / 2;
+
+  const x2 = intersectionNodePosition.x + w;
+  const y2 = intersectionNodePosition.y + h;
+  const x1 = targetPosition.x + w;
+  const y1 = targetPosition.y + h;
+
+  const xx1 = (x1 - x2) / (2 * w) - (y1 - y2) / (2 * h);
+  const yy1 = (x1 - x2) / (2 * w) + (y1 - y2) / (2 * h);
+  const a = 1 / (Math.abs(xx1) + Math.abs(yy1));
+  const xx3 = a * xx1;
+  const yy3 = a * yy1;
+  const x = w * (xx3 + yy3) + x2;
+  const y = h * (-xx3 + yy3) + y2;
+
+  return { x, y };
 }
 
 // returns the position (top,right,bottom or right) passed node compared to the intersection point
@@ -125,16 +199,44 @@ export const getEdgeProperty = (): EdgeProperties => {
 };
 
 export const fromEdgePropertyList = (edgePropertyList: any): EdgeProperties => {
-  const edgeProperties = getEdgeProperty();
+  const edgeProperties: any = getEdgeProperty();
   edgeProperties.path = edgePropertyList[0];
   edgeProperties.centerX = edgePropertyList[1];
   edgeProperties.centerY = edgePropertyList[2];
   edgeProperties.offsetX = edgePropertyList[3];
   edgeProperties.offsetY = edgePropertyList[4];
+  edgeProperties.handles = edgePropertyList.handles;
   return edgeProperties;
 };
 
-export const getEdgeProperties = ({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition }: any): EdgeProperties => {
-  const smoothStepResult = getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
-  return fromEdgePropertyList(smoothStepResult);
+export const getStep = (type: any = 'smoothstep',sourceX: number, sourceY: number, sourcePosition: any, targetX: number, targetY: number, targetPosition: any): any => {
+  if (type === 'smoothstep') {
+    return getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
+  } else if (type === 'bezier') {
+    return getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
+  }
 };
+
+export const getHandleEdgeProperties = (sourceX: any, sourceY: any, sourcePosition: any, targetX: any, targetY: any, targetPosition: any, type: any = 'smoothstep'): EdgeProperties => {
+  const stepResult: any = getStep(type, sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition);
+  stepResult.handles = {
+    sourceHandle: sourcePosition,
+    targetHandle: targetPosition
+  };
+  return fromEdgePropertyList(stepResult);
+};
+
+export const getFloatingEdgeProperties = (sourceNode: any, targetNode: any, type: any = 'bezier', offset: any = {x: 0, y: 0}): EdgeProperties => {
+  let { sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition }: any = getEdgeParams(sourceNode, targetNode);
+  sourceX = sourceX + (sourcePosition !== Position.Left ? offset.x : -offset.x);
+  sourceY = sourceY + (sourcePosition !== Position.Top ? -offset.y : offset.y);
+  targetX = targetX + (targetPosition !== Position.Left ? offset.x : -offset.x);
+  targetY = targetY + (targetPosition !== Position.Top ? -offset.y : offset.y);
+  const stepResult: any = getStep(type, sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition);
+  stepResult.handles = {
+    sourceHandle: sourcePosition,
+    targetHandle: targetPosition
+  };
+  return fromEdgePropertyList(stepResult);
+};
+

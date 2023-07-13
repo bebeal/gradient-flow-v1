@@ -1,4 +1,5 @@
-import { forwardRef } from "react";
+import React from "react";
+import { forwardRef, useCallback } from "react";
 import { MiniMapNodeProps } from "reactflow";
 import styled from "styled-components";
 
@@ -23,6 +24,12 @@ const FlowMapNode: React.FC<FlowMapNodeProps> = forwardRef<any, FlowMapNodeProps
   const { background, backgroundColor } = style || {};
   const fill = (color || background || backgroundColor) as string;
 
+  const nodeClicked = useCallback((event: any, id: any) => {
+    event.stopPropagation();
+    event.preventDefault();
+    onClick?.(event, id);
+  }, [onClick]);
+
   return (
     <FlowMapRectNode 
       ref={ref} 
@@ -35,10 +42,10 @@ const FlowMapNode: React.FC<FlowMapNodeProps> = forwardRef<any, FlowMapNodeProps
       fill={fill}
       stroke={strokeColor}
       strokeWidth={strokeWidth}
-      onClick={onClick ? (event: any) => onClick(event, id) : undefined}
+      onClick={nodeClicked}
 
     />
   );
 });
 
-export default FlowMapNode;
+export default React.memo(FlowMapNode);

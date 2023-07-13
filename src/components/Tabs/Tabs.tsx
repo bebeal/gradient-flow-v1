@@ -1,5 +1,7 @@
 import React, { useState, ReactElement } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
+import { Box, Fit } from '../../constants';
+import { nanoid } from 'nanoid';
 
 type TabType = {
   label: string,
@@ -13,6 +15,8 @@ type TabsProps = {
   borders?: boolean,
   borderSize?: number,
   borderRadius?: number,
+  id?: any,
+  overflow?: any,
 };
 
 type IconPosition = 'top' | 'left' | 'right' | 'bottom';
@@ -38,7 +42,7 @@ const FlexDirectionMap: any = {
 
 const LabelWrapper = styled.div<any>`
   display: flex;
-  flex-direction: ${({ iconPosition }) => FlexDirectionMap[iconPosition] || 'row'};
+  flex-direction: ${(props) => FlexDirectionMap[props?.iconPosition] ?? 'row'};
   align-items: center;
   justify-content: center;
   gap: 5px;
@@ -52,7 +56,7 @@ const IconWrapper = styled.div<any>`
   height: 16px;
 `;
 
-const TabWrapper = styled.div<any>`
+const TabList = styled.div<any>`
 display: flex;
 background: ${(props) => props.theme.controlsBackground};
 border-radius: ${(props) => props.borderRadius}px ${(props) => props.borderRadius}px 0 0;
@@ -75,11 +79,25 @@ const TabButton = styled.button<any>`
   cursor: pointer;
   position: relative;
 
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+
   ${props => props.active ? `
     border: ${props.borderSize}px solid ${props.borders ? props.theme.primary: props.theme.controlsBorder};
     border-bottom: ${props.borderSize}px solid ${props.borders ? props.theme.controlsBorder: 'transparent'};
     color: ${props.theme.primary};
     fill: ${props.theme.primary};
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -${props.borderSize}px;
+      left: 0;
+      bottom: -2px;
+      width: 100%;
+      height: ${props.borderSize}px;
+      background: ${props.theme.controlsBackground};
+    }
     ` : `
     border-bottom: ${props.borderSize}px solid transparent;
     `}
@@ -95,19 +113,30 @@ const getTabPanelBorderRadius = (activeTab: any, numTabs: any, borderRadius: any
   }
 };
 
-const TabPanel = styled.div<any>`
-  padding: 8px;
-  height: 100%;
+export const TabsWrapper = styled.div<any>`
+  display: flex;
+  flex-direction: column;
   width: 100%;
+  height: 100%;
   overflow: hidden;
+  position: relative;
+`;
+
+
+const TabPanel = styled.div<any>`
+  padding: 0;
+  display: flex;
+  height: auto;
+  width: 100%;
+  overflow: auto;
+  flex-direction: column;
   background: ${(props) => props.theme.controlsBackground};
   border: ${(props) => props.borderSize}px solid ${(props) => props.borders ? props.theme.primary : props.theme.controlsBorder};
   border-radius: ${(props) => getTabPanelBorderRadius(props.activeTab, props.numTabs, props.borderRadius)};
-  margin-top: -${(props) => props.borderSize}px;
   color: ${(props) => props.theme.nodeColor};
 `;
 
-const Tab = ({ index=0, active, onClick, label, icon, iconPosition='left', borders=true, borderSize=2, borderRadius=4 }: TabProps) => (
+const Tab = ({ index=0, active, onClick, label, icon, iconPosition='left', borders=true, borderSize=1, borderRadius=2 }: TabProps) => (
   <TabButton index={index} borderSize={borderSize} borders={borders} borderRadius={borderRadius} active={active} onClick={onClick}>
     <LabelWrapper iconPosition={iconPosition}>
       {icon && <IconWrapper>{icon}</IconWrapper>}
@@ -116,7 +145,8 @@ const Tab = ({ index=0, active, onClick, label, icon, iconPosition='left', borde
   </TabButton>
 );
 
-const Tabs = ({ tabs, initialTab = 0, borders=true, borderSize=1, borderRadius=2 }: TabsProps) => {
+const Tabs = ({ tabs, initialTab = 0, borders=true, borderSize=1, borderRadius=2, id=nanoid(), overflow='auto' }: TabsProps) => {
+  tabs = tabs.filter((tab: any) => !!tab.content); // remove tabs without content
   const [activeTab, setActiveTab] = useState(initialTab);
 
   const handleTabClick = (index: number) => {
@@ -124,26 +154,26 @@ const Tabs = ({ tabs, initialTab = 0, borders=true, borderSize=1, borderRadius=2
   };
 
   return (
-      <div>
-        <TabWrapper borderSize={borderSize} borders={borders} borderRadius={borderRadius}>
+      <TabsWrapper>
+        <TabList borderSize={borderSize} borders={borders} borderRadius={borderRadius}>
           {tabs.map((tab, index) => (
             <Tab
               index={index}
               borderSize={borderSize}
               borders={borders}
               borderRadius={borderRadius}
-              key={index}
+              key={`tab-${id}-${index}`}
               active={activeTab === index} 
               onClick={() => handleTabClick(index)} 
               label={tab.label} 
               icon={tab.icon}
             />
           ))}
-        </TabWrapper>
+        </TabList>
         <TabPanel borderSize={borderSize} borders={borders} borderRadius={borderRadius} activeTab={activeTab} numTabs={tabs.length}>
           {tabs[activeTab]?.content}
         </TabPanel>
-      </div>
+      </TabsWrapper>
   );
 };
 

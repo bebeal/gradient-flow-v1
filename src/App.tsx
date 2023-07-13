@@ -16,6 +16,9 @@ import TestCodeHighlight from './pages/TestCodeHighlight';
 import TestMultiTerminal from './pages/TestMultiTerminal';
 import TestTabs from './pages/TestTabs';
 import TestControlPanel from './pages/TestControlPanel';
+import TestColorPicker from './pages/TestColorPicker';
+import Test from './pages/Test';
+import TestLabeledAttributes from './pages/TestLabeledAttributes';
 
 export const IntanceLabeledAttribute = (
   <LabeledArea theme={Dark}>
@@ -41,6 +44,9 @@ export const Pages: Page[] = [
   { path: "test-codehighlight", component: <TestCodeHighlight />, name: generatePageName('/test-codehighlight'),},
   { path: "test-tabs", component: <TestTabs />, name: generatePageName('/test-tabs'),},
   { path: "test-controlpanel", component: <TestControlPanel />, name: generatePageName('/test-controlpanel'),},
+  { path: "test-colorpicker", component: <TestColorPicker />, name: generatePageName('/test-colorpicker'),},
+  { path: "test-test", component: <Test />, name: generatePageName('/test-test'),},
+  { path: "test-labeledAttributes", component: <TestLabeledAttributes />, name: generatePageName('/test-labeledAttributes'),},
   { path: "*", component: <div>404</div>, name: generatePageName('/'), },
 
 

@@ -3,6 +3,7 @@ import 'react-tabs/style/react-tabs.css';
 import Terminal from './Terminal';
 import { useEffect } from 'react';
 import { parseOutMarkdownCodeBlock } from '../CodeHighlightSyntax/CodeHighlightSyntax';
+import { nanoid } from 'nanoid';
 
 export interface MultiTerminalProps {
   terminals?: Array<{ title: string; code: string; language?: string; parseFromMarkdown?: boolean }>;
@@ -37,7 +38,7 @@ const MultiTerminal = (props: MultiTerminalProps) => {
   return (
     <Tabs>
       <TabList>
-        {terminals.map(({ title }, index) => <Tab key={index}>{title}</Tab>)}
+        {terminals.map(({ title }, index) => <Tab key={`multi-tab-${index}-${nanoid()}`}>{title}</Tab>)}
       </TabList>
 
       {terminals.map(({ title, code, language, parseFromMarkdown }, index) => (

@@ -2,8 +2,8 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import styled, { useTheme } from 'styled-components';
 import { Handle, NodeProps, NodeResizer, Position } from 'reactflow';
 import { nanoid } from 'nanoid';
-import { BaseNodeStyle, FlowNodeLabel, FlowNodeProps, FlowNodeWrapper, getHandles } from './FlowNode';
 import { throttle } from 'lodash';
+import { CustomNodeProps } from './NodeUtils';
 
 const Polygon = styled.polygon<any>`
   fill: ${(props) => props.theme.nodeBackground};
@@ -35,7 +35,7 @@ export const TriangleLabel = styled.div<any>`
   flex-wrap: wrap;
 `;
 
-export const TriangleNode: React.FC<FlowNodeProps> = (props) => {
+export const TriangleNode: React.FC<CustomNodeProps> = (props) => {
   const { id, data, xPos, yPos, selected, type='TriangleNode', resizeable=true, inPanel=false, isConnectable=true, zIndex=60, ...rest } = props;
   const theme: any = useTheme();
   const hoverable = true;

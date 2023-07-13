@@ -1,25 +1,33 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import ReactDOM from "react-dom";
 import styled from "styled-components";
 
-const PopupContent = styled.div<any>`
+interface PopupContentProps {
+  children: React.ReactNode;
+  top: string;
+  left: string;
+  direction: 'up' | 'down';
+}
+
+const PopupContent = styled.div<PopupContentProps>`
   position: absolute;
-  z-index: 10000;
-  background: white;
+  max-width: 200px;
+  z-index: 51;
   border-radius: 5px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-  transform: translate(0, -60%);
-  top: ${(props) => props.top || "0"} !important;
-  left: ${(props) => props.left || "0"} !important;
-
+  top: ${(props) => props.top || "auto"};
+  left: ${(props) => props.left || "auto"};
+  transform: ${(props) => props.direction === 'up' ? 'translate(-50%, -100%)' : 'translate(-50%, 0)'};
   &:before {
     content: "";
-    position: absolute;
-    top: calc(100% - 1px);
-    left: 50%;
     border-width: 10px;
     border-style: solid;
-    border-color: white transparent transparent transparent;
+    position: absolute;
+    z-index: 50;
+    left: 50%;
     transform: translate(-50%, 0);
+    top: ${(props) => props.direction === 'up' ? '100%' : '-20px'};
+    border-color: ${(props) => props.direction === 'down' ? 'transparent transparent white transparent' : 'white transparent transparent transparent'};
   }
 `;
 
@@ -28,74 +36,84 @@ export interface PopupProps {
   isOpen?: boolean;
   onClose?: () => void;
   buttonRef: any;
+  direction?: 'up' | 'down';
 };
 
 const Popup = (props: PopupProps) => {
-  const { children, isOpen, onClose, buttonRef } = props;
+  const { children, isOpen, onClose, buttonRef, direction = 'up' } = props;
   const popupContentRef = useRef<any>(null);
-  const [popupPosition, setPopupPosition] = useState({ top: 'auto', left: 'auto' });
-  const [correctedPosition, setCorrectedPosition] = useState({ top: 'auto', left: 'auto' });
+  const [popupPosition, setPopupPosition] = useState<any>({ top: '0px', left: '0px' });
+  const calculatePopupPosition = useCallback(() => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    
+    // Fetch width and height of the popup.
+    const popupWidth = popupContentRef.current ? popupContentRef.current.offsetWidth : 0;
+    const popupHeight = popupContentRef.current ? popupContentRef.current.offsetHeight : 0;
 
-  const stopPropagation = (e: any) => {
-    e.stopPropagation();
-  };
+    let left = rect.left + scrollLeft + rect.width / 2;
+    let top = direction === 'down' ? rect.top + scrollTop + rect.height : rect.top + scrollTop - 10;
 
-  useEffect(() => {
-    const checkIfClickedOutside = (e: any) => {
-      
-      if (isOpen && popupContentRef.current && !popupContentRef.current.contains(e.target) && buttonRef.current &&
-      !buttonRef.current.contains(e.target)) {
+    // Check if the popup goes out of the right side of the viewport.
+    if (left + popupWidth / 2 > window.innerWidth) {
+      left = window.innerWidth - popupWidth / 2;
+    }
+
+    // Check if the popup goes out of the left side of the viewport.
+    if (left - popupWidth / 2 < 0) {
+      left = popupWidth / 2;
+    }
+
+    // Check if the popup goes out of the bottom of the viewport.
+    if (direction === 'down' && top + popupHeight > window.innerHeight) {
+      top = window.innerHeight - popupHeight;
+    }
+
+    // Check if the popup goes out of the top of the viewport.
+    if (direction === 'up' && top < 0) {
+      top = 0;
+    }
+    return { top: `${top}px`, left: `${left}px` };
+  }, [buttonRef, direction]);
+
+  useLayoutEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const position = calculatePopupPosition();
+      setPopupPosition(position);
+    }
+  }, [isOpen, buttonRef, calculatePopupPosition]);
+
+    useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (popupContentRef.current && !popupContentRef.current.contains(event.target) && buttonRef.current && !buttonRef.current.contains(event.target)) {
         onClose?.();
       }
     };
-    document.addEventListener("mousedown", checkIfClickedOutside);
     
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
     return () => {
-      document.removeEventListener("mousedown", checkIfClickedOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [buttonRef, isOpen, onClose, popupContentRef]);
+  }, [isOpen, onClose]);
 
-  useEffect(() => {
-    // Show the popup first at the button's position
-    if (isOpen && buttonRef.current) {
-      setPopupPosition({
-        top: `${buttonRef.current.offsetTop}px`,
-        left: `${buttonRef.current.offsetLeft}px`
-      });
-    }
-  }, [isOpen]);
-  
-
-  useEffect(() => {
-    if (isOpen && popupContentRef.current) {
-      // Adjust the position after the popup is shown
-      const popupBB = popupContentRef.current.getBoundingClientRect();
-
-      // Initialize new positions with current ones to maintain existing offset
-      let newTop = parseFloat(popupPosition.top);
-      let newLeft = parseFloat(popupPosition.left);
-      if (popupBB.top < 0) {
-        // console.log('popupBB.top < 0');
-        newTop = -popupBB.top * 4;
-      } else if (popupBB.bottom > window.innerHeight) {
-        // console.log('popupBB.bottom > window.innerHeight');
-        newTop = window.innerHeight - popupBB.height;
-      } else if (popupBB.left < 0) {
-        // console.log('popupBB.left < 0');
-        newLeft = -popupBB.left;
-      } else if (popupBB.right > window.innerWidth) {
-        // console.log('popupBB.right > window.innerWidth');
-        newLeft = window.innerWidth - popupBB.width;
-      }
-      // Apply the adjusted position
-      setPopupPosition({ top: `${newTop}px`, left: `${newLeft}px` });
-    }
-  }, [isOpen, popupContentRef]);
-  
-
-  return isOpen ? (
-    <PopupContent ref={popupContentRef} top={popupPosition.top} left={popupPosition.left} onClick={stopPropagation}>{children}</PopupContent>
-  ) : null;
+  return ReactDOM.createPortal(
+    isOpen ? (
+      <PopupContent 
+        ref={popupContentRef} 
+        top={popupPosition.top} 
+        left={popupPosition.left}
+        direction={direction}
+      >
+        {children}
+      </PopupContent>
+    ) : null,
+    document.body
+  );
 };
 
 export default Popup;

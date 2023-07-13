@@ -13,20 +13,20 @@ export interface PanelProps {
 export const PanelWrapper = styled.div<any>`
   width: 100%;
   height: 100%;
-  overflow: auto;
   background-color: #333333;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 `;
 
 export const ChildrenWrapper = styled.div<any>`
   width: 100%;
   height: 100%;
-  padding-left: ${(props) => props.panelPosition === 'right' ? props.handleSize : 0}px;
-  padding-right: ${(props) => props.panelPosition === 'left' ? props.handleSize : 0}px;
+  padding-left: ${(props) => props.panelPosition === 'right' ? props.handleSize+1 : 0}px;
+  padding-right: ${(props) => props.panelPosition === 'left' ? props.handleSize+1 : 0}px;
   display: flex;
+  hidden: auto;
   flex-direction: column;
-  justify-content: flex-start;
 `;
 
 export const PanelDivider = styled.hr<any>`
@@ -81,7 +81,7 @@ const ToggleButton = styled.div<any>`
   }
 `;
 
-const Panel = React.forwardRef((props: PanelProps, PanelRef: any): any => {
+const Panel = (props: PanelProps): any => {
   const {
     handleSize = 8,
     panelPosition="left",
@@ -89,18 +89,21 @@ const Panel = React.forwardRef((props: PanelProps, PanelRef: any): any => {
     width = "20%"
   } = props;
   const theme: any = useTheme();
+  const panelRef = useRef<any>(null);
   const [toggle, setToggle] = useState<boolean>(false);
 
   const toggleButton = (event: any) => {
-    const size = toggle ? width : handleSize-(handleSize/2);
-    setToggle(!toggle);
-    PanelRef.current.updateSize({width: size});
+    if (panelRef.current) {
+      const size = toggle ? width : handleSize-(handleSize/2);
+      setToggle(!toggle);
+      panelRef.current.updateSize({width: size});
+    }
   };
 
   const wrapAsResizeable = (element: any) => {
     return (
       <Resizable
-        ref={PanelRef}
+        ref={panelRef}
         bounds="window"
         boundsByDirection={true}
         scale={1}
@@ -111,7 +114,7 @@ const Panel = React.forwardRef((props: PanelProps, PanelRef: any): any => {
         }}
         defaultSize={{
           width: width,
-          height: "auto",
+          height: "100%",
         }}
         enable={{
           top: false,
@@ -153,8 +156,7 @@ const Panel = React.forwardRef((props: PanelProps, PanelRef: any): any => {
         </ChildrenWrapper>
       </PanelWrapper>
       <ToggleButton 
-        onMouseDown={toggleButton} 
-        onMouseUp={toggleButton} 
+        onClick={toggleButton} 
         theme={theme} 
         handleSize={handleSize} 
         panelPosition={panelPosition}
@@ -163,6 +165,6 @@ const Panel = React.forwardRef((props: PanelProps, PanelRef: any): any => {
       </ToggleButton>    
     </>
   );
-});
+};
 
 export default Panel;

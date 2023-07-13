@@ -102,6 +102,11 @@ a:hover {
   text-decoration: underline;
 }
 
+hr {
+  margin: 0;
+  padding: 0;
+}
+
 /* For scroll bar */
 ::-webkit-scrollbar {
   width: .5rem;

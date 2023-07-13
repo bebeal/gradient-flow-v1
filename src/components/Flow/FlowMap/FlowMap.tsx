@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, useCallback } from "react";
 import { Background, MiniMap, useReactFlow } from "reactflow";
 import styled, { useTheme } from "styled-components";
 import FlowMapNode from "./FlowMapNode";
@@ -11,6 +11,7 @@ export const MapWrapper = styled.div<any>`
 export const MapStyled = styled(MiniMap)<any>`
   z-index: 50;
   background-color: ${(props) => props.theme.background};
+  border: 0.5px solid ${(props) => props.theme.controlsBorder};
   margin: 0;
   width: 100%;
   height: 100%;
@@ -47,7 +48,6 @@ export interface FlowMapProps {
 
 const FlowMap = (props: FlowMapProps) => {
   const {
-    flowControls,
     zoomable = true,
     pannable = true,
     onNodeClick = () => {},
@@ -58,15 +58,15 @@ const FlowMap = (props: FlowMapProps) => {
   const theme = useTheme();
   const NodeComponent = nodeComponent;
 
-  const getNode = (nodeProps: any) => {
+  const getNode = useCallback((nodeProps: any) => {
     return (<NodeComponent {...nodeProps} />);
-  };
+  }, [NodeComponent]);
 
   return (
     <MapWrapper>
-      <MapStyled {...props} theme={theme} nodeComponent={(nodeProps: any) => getNode(nodeProps)} />
+      <MapStyled onNodeClick={onNodeClick} zoomable={zoomable} pannable={pannable} nodeColor={nodeColor} nodeStrokeColor={nodeStrokeColor} theme={theme} nodeComponent={getNode} />
     </MapWrapper>
   );
 };
 
-export default FlowMap;
+export default React.memo(FlowMap);

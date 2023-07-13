@@ -51,7 +51,7 @@ export const FlowNodeTypes: NodeTypes = {
 // * straight
 export const FlowEdgeTypes: EdgeTypes = {
   FlowEdge: FlowEdge,
-  terminal: TerminalEdge,
+  Terminal: TerminalEdge,
 };
 
 // Override the default react-flow styles to make panel scalable (not reliant on position: absolute)
@@ -62,7 +62,7 @@ export const FlowGlobals = createGlobalStyle<any>`
     margin: 0;
   }
   .react-flow__pane {
-    cursor: ${(props) => props.mouseCursor};
+    cursor: ${(props) => props.mouseCursor || 'auto'};
   }
   .react-flow__attribution {
     display: none;
@@ -107,16 +107,16 @@ export const FlowEdgeOptions: DefaultEdgeOptions = {
 
 // Default Viewport Helper Function Options that are used when the viewport methods are called
 export const FlowViewportHelperFunctionOptions: ViewportHelperFunctionOptions = {
-  duration: 500,
+  duration: 300, // setting over 500 causes maximum update depth exceeded error
 };
 
 // Default Fit View Options that are used when `fitView` is called
 export const FlowFitViewOptions: FitViewOptions = {
   ...FlowViewportHelperFunctionOptions,
-  padding: 0.1,
+  padding: 0.25,
   includeHiddenNodes: true,
-  minZoom: 0,
-  maxZoom: 3,
+  minZoom: 0.01,
+  maxZoom: Infinity,
 };
 
 // Default Center Options that are used when `setCenter` is called

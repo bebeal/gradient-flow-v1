@@ -19,7 +19,7 @@ const TerminalWrapper = styled.div<any>`
   height: 100%;
   display: flex;
   flex-direction: column;
-  border-radius: 6px;
+  border-radius: 4px;
   z-index: 50;
 `;
 
@@ -40,7 +40,7 @@ const TextContainer = styled.div<any>`
 const ConsoleWrapper = styled.div<any>`
   background: #000000;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
   font-size: 1rem;
@@ -53,6 +53,7 @@ const ConsoleWrapper = styled.div<any>`
 `;
 
 export interface TerminalProps {
+  id?: string;
   code?: any;
   language?: string;
   parseFromMarkdown?: boolean;
@@ -64,6 +65,7 @@ export interface TerminalProps {
 }
 
 const Terminal: FC<TerminalProps> = ({
+  id = nanoid(),
   code = "",
   language,
   parseFromMarkdown = false,
@@ -78,21 +80,22 @@ const Terminal: FC<TerminalProps> = ({
   draggable = false,
   resizable = false,
 }) => {
-  let codeBlock: any = typeof code === "string" ? code : Object.values(code)[0];
+  let codeBlock: any = typeof code === "string" ? code : Object.values(code)?.[0] || "";
   let codeLanguage = language;
-  if (parseFromMarkdown || codeBlock.trim().startsWith("\`\`\`")) {
+  if (parseFromMarkdown || codeBlock?.trim().startsWith("\`\`\`")) {
     const [parsedLanguage, parsedCodeBlock]: any = parseOutMarkdownCodeBlock(codeBlock, true);
     codeLanguage = parsedLanguage;
     codeBlock = parsedCodeBlock;
   }
-  const handleId = "drag-handle-" + nanoid();
+  const terminalId = `${id}-${title}-terminal`
+  const handleId = `${id}-${title}-drag-handle`;
   const topBarRef = useRef(null);
   const terminalRef = useRef(null);
   const resizableRef = useRef(null);
 
 const TerminalComponent = () => {
   return (
-  <TerminalWrapper ref={terminalRef}> 
+  <TerminalWrapper id={terminalId} ref={terminalRef}> 
       {topBar && <TopBarComponent
         ref={topBarRef}
         title={title}
@@ -128,16 +131,7 @@ const ResizableTerminal = (terminal: any) => {
         width: "100%",
         height: "100%",
       }}
-      handleStyles={{
-        right: {display: 'block'},
-        bottom: {display: 'block'},
-        bottomRight: {display: 'block'},
-        left: {display: 'none'},
-        top: {display: 'none'},
-        topLeft: {display: 'none'},
-        topRight: {display: 'none'},
-        bottomLeft: {display: 'none'},
-    }}
+      handleStyles={{ right: {display: 'block'}, bottom: {display: 'block'}, bottomRight: {display: 'block'}, left: {display: 'none'}, top: {display: 'none'}, topLeft: {display: 'none'}, topRight: {display: 'none'}, bottomLeft: {display: 'none'}, }}
   >
     {terminal}
   </Resizable>
@@ -170,4 +164,4 @@ const DraggableTerminal = (terminal: any) => {
   return getTerminal();
 };
 
-export default Terminal;
+export default React.memo(Terminal);

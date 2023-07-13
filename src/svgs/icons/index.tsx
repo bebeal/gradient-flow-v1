@@ -12,3 +12,6 @@ export { default as ColorPalette } from './ColorPalette';
 export { default as ChevronDown } from './ChevronDown';
 export { default as ChevronUp } from './ChevronUp';
 export { default as Home } from './Home';
+export { default as ColoredPencil } from './ColoredPencil';
+export { default as Save } from './Save';
+export { default as History } from './History';

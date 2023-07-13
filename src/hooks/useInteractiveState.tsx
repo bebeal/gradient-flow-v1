@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ConnectionMode } from "reactflow";
 
 const useInteractiveState = () => {
@@ -11,29 +11,36 @@ const useInteractiveState = () => {
   const [isInteractive, setIsInteractive] = useState(true);
   const [connectionMode, setConnectionMode] = useState(ConnectionMode.Loose);
 
-  const togglePanOnDrag = () => setPanOnDrag((val) => !val);
-  const toggleNodesDraggable = () => setNodesDraggable((val) => !val);
-  const toggleNodesConnectable = () => setNodesConnectable((val) => !val);
-  const toggleElementsSelectable = () => setElementsSelectable((val) => !val);
-  const toggleElementsHoverable = () => setElementsHoverable((val) => !val);
+  const togglePanOnDrag = useCallback(() => setPanOnDrag((val) => !val), []);
+  const toggleNodesDraggable = useCallback(() => setNodesDraggable((val) => !val), []);
+  const toggleNodesConnectable =  useCallback(() => setNodesConnectable((val) => !val), []);
+  const toggleElementsSelectable =  useCallback(() => setElementsSelectable((val) => !val), []);
+  const toggleElementsHoverable =  useCallback(() => setElementsHoverable((val) => !val), []);
 
-  const toggleIsInteractive = () => {
+  const toggleIsInteractive = useCallback(() => {
     const newIsInteractive = !isInteractive;
     setPanOnDrag(newIsInteractive);
     setNodesDraggable(newIsInteractive);
     setNodesConnectable(newIsInteractive);
     setElementsSelectable(newIsInteractive);
     setIsInteractive(newIsInteractive);
-  };
+  }, [isInteractive]);
 
-  const toggleConnectionMode = () =>
+  // useEffect(() => {
+  //   if (!panOnDrag) {
+  //     setIsInteractive(false);
+  //   }
+  // }, [panOnDrag]);
+
+  const toggleConnectionMode = useCallback(() =>
     setConnectionMode((val) =>
       val === ConnectionMode.Loose
         ? ConnectionMode.Strict
         : ConnectionMode.Loose
-    );
+    ), []);
 
-  return {
+    return useMemo(() => {
+      return {
     panOnDrag,
     togglePanOnDrag,
     setPanOnDrag,
@@ -55,7 +62,30 @@ const useInteractiveState = () => {
     connectionMode,
     toggleConnectionMode,
     setConnectionMode,
-  };
+  }
+  }, [
+    panOnDrag,
+    togglePanOnDrag,
+    setPanOnDrag,
+    nodesDraggable,
+    toggleNodesDraggable,
+    setNodesDraggable,
+    nodesConnectable,
+    toggleNodesConnectable,
+    setNodesConnectable,
+    elementsSelectable,
+    toggleElementsSelectable,
+    setElementsSelectable,
+    elementsHoverable,
+    toggleElementsHoverable,
+    setElementsHoverable,
+    isInteractive,
+    toggleIsInteractive,
+    setIsInteractive,
+    connectionMode,
+    toggleConnectionMode,
+    setConnectionMode,
+  ]);
 };
 
 export default useInteractiveState;

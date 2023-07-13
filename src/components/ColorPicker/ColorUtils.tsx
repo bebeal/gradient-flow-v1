@@ -1,4 +1,11 @@
-import styled from "styled-components";
+import { useState } from "react";
+import styled, { createGlobalStyle } from "styled-components";
+
+export const areColorsEqual = (color1: any, color2: any, difference: number = 1, checkAlpha: boolean = true) => {
+  const hsva1 = new Color(color1).toHsva()
+  const hvsa2 = new Color(color2).toHsva()
+  return (Math.abs(hsva1.h - hvsa2.h) <= difference) && (Math.abs(hsva1.s - hvsa2.s) < difference) && (Math.abs(hsva1.v - hvsa2.v) < difference) && (checkAlpha ? (Math.abs(hsva1.a - hvsa2.a) < difference) : true);
+};
 
 export const namedColors: Record<string, string> = {
   'red': '#ff0000',
@@ -349,63 +356,6 @@ export enum Direction {
   Vertical = 'vertical',
 };
 
-export const BarOptions = styled.div<any>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  width: 100%;
-  height: auto;
-  padding: 0;
-  overflow: hidden;
-`;
-
-export const BarsWithResult = styled.div<any>`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  gap: 0;
-  margin: 6px 0 6px 0;
-`;
-
-export const ColorResult = styled.div<{ color: string }>`
-  width: 32px;
-  height: 28px;
-  border: 0.5px solid ${props => props.theme.border};
-  margin-left: 6px;
-  border-radius: 4px;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    background-image: 
-      linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc),
-      linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc);
-    background-size: 20px 20px;
-    background-position: 0 0, 10px 10px;
-  }
-
-  &::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    background-color: ${props => props.color};
-  }
-`;
-
 export const Checkboard = styled.div`
   position: absolute;
   top: 0;
@@ -420,3 +370,16 @@ export const Checkboard = styled.div`
   background-size: 8px 8px;
   background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
 `;
+
+export const Word = styled.div<any>`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  color: ${props => props.theme.controlsColor};
+  letter-spacing: 1px;
+`;
+export const RGBHexWord = (props: any) => {
+
+};

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import { Accordion } from '../../Accordion/Accordion';
 import { Relative } from '../../../constants';
@@ -6,7 +6,8 @@ import { FlowNodeTypes } from '../FlowConstants';
 import { nanoid } from 'nanoid';
 
 export interface FlowDraggableNodesProps {
-  nodeTypes: any;
+  nodeTypes?: any[];
+  title?: string;
 };
 
 const GridWrapper = styled.div<any>`
@@ -43,29 +44,42 @@ export const NodeTypeComponentWrapper = styled.div<any>`
   cursor: pointer;
 `;
 
-const FlowDraggableNodes: React.FC<FlowDraggableNodesProps> = ({ nodeTypes }) => {
+const FlowDraggableNodes: React.FC<FlowDraggableNodesProps> = ({ 
+  nodeTypes=[], 
+  title='Nodes'
+}) => {
 
-  const onDragStart = (event: any, nodeType: any) => {
+  const onDragStart = useCallback((event: any, nodeType: any) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
     event.dataTransfer.effectAllowed = 'move';
-  };
+  }, []);
+
+  const getNodeComponent = useCallback((NodeTypeComponent: any, nodeType: any, index: number) => {
+    return ( <NodeTypeComponent data={{label: nodeType, id: `${title}-draggable-node-${index}`}} inPanel={true} resizeable={false} /> );
+  }, []);
+
+  const NodeList = useMemo(() => {
+    return (
+      nodeTypes.map((nodeType: any, index: number) => {
+        const NodeTypeComponent: any = FlowNodeTypes[nodeType];
+        return (
+          <NodeBox key={`${title}-draggable-node-${index}-box`}>
+            <NodeTypeComponentWrapper draggable onDragStart={(e: any) => onDragStart(e, nodeType)}>
+                {getNodeComponent(NodeTypeComponent, nodeType, index)}
+              </NodeTypeComponentWrapper>
+          </NodeBox>
+          );
+        })
+    )
+  }, [getNodeComponent, nodeTypes, onDragStart, title]);
 
   return (
-    <Accordion expanded={true} title="Nodes">
+    <Accordion expanded={true} title={title}>
       <GridWrapper>
-        {nodeTypes.map((nodeType: any, index: number) => {
-          const NodeTypeComponent: any = FlowNodeTypes[nodeType];
-          return (
-            <NodeBox key={index}>
-              <NodeTypeComponentWrapper draggable onDragStart={(e: any) => onDragStart(e, nodeType)}>
-                <NodeTypeComponent data={{label: nodeType, id: nanoid()}} inPanel={true} resizeable={false} />
-                </NodeTypeComponentWrapper>
-            </NodeBox>
-            );
-          })}
+        {NodeList}
       </GridWrapper>
     </Accordion>
   )
 };
 
-export default FlowDraggableNodes;
+export default React.memo(FlowDraggableNodes);
